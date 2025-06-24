@@ -2,10 +2,153 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ROOTDEGEN DApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROOTDEGEN Token</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background: #111;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 20px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+    button {
+      background-color: #00ffff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      color: #000;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin: 10px;
+    }
+    button:hover {
+      background-color: #00cccc;
+    }
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 10px;
+      width: 80%;
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div class="header">
+    <h1>ROOTDEGEN</h1>
+    <p>A meme coin satírica da era cringe-futurista nerd</p>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>Adicionar ROOT à MetaMask</h2>
+      <button onclick="addToken()">Adicionar ROOT</button>
+    </div>
+
+    <div class="card">
+      <h2>Funções Nerds</h2>
+      <button onclick="callFunction('rugProbability')">Rug Probability</button>
+      <button onclick="callFunction('rektMode')">Rekt Mode</button>
+      <button onclick="callFunction('devIsSleep')">Dev Is Sleep?</button>
+    </div>
+
+    <div class="card">
+      <h2>Burn se Palíndromo</h2>
+      <input type="text" id="palindrome" placeholder="Escreve algo tipo 'level'" />
+      <button onclick="burnIfPalindrome()">Queimar</button>
+    </div>
+  </div>
+
+  <script>
+    const CONTRACT_ADDRESS = "0x8655542Ef34e3a93c15337bE382d43B497A9A8d5";
+    const ABI = [
+      "function rugProbability() view returns (uint256)",
+      "function rektMode() view returns (bool)",
+      "function devIsSleep() view returns (bool)",
+      "function burnIfPalindrome(string memory inputHash) public"
+    ];
+
+    async function addToken() {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: CONTRACT_ADDRESS,
+              symbol: 'ROOT',
+              decimals: 18,
+              image: 'https://rootdegen.xyz/logo.png'
+            },
+          },
+        });
+      } catch (error) {
+        alert("Erro ao adicionar token");
+        console.error(error);
+      }
+    }
+
+    async function getProviderAndContract() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+      return contract;
+    }
+
+    async function callFunction(name) {
+      try {
+        const contract = await getProviderAndContract();
+        const result = await contract[name]();
+        alert(`${name} => ${result}`);
+      } catch (err) {
+        alert("Erro ao chamar função: " + name);
+        console.error(err);
+      }
+    }
+
+    async function burnIfPalindrome() {
+      try {
+        const input = document.getElementById("palindrome").value;
+        const contract = await getProviderAndContract();
+        const tx = await contract.burnIfPalindrome(input);
+        alert("Transação enviada! Espera confirmação...");
+        await tx.wait();
+        alert("Burn realizado com sucesso (se era palíndromo)");
+      } catch (err) {
+        alert("Erro ao queimar:");
+        console.error(err);
+      }
+    }
+  </script>
+
+  <!-- Ethers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
 </body>
 </html>
